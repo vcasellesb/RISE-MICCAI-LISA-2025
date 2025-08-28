@@ -5,7 +5,7 @@ from time import sleep
 import numpy as np
 
 from ._typing import ArrayLike
-from .utils import save_json, join
+from .utils import save_json, join, get_default_num_processes
 from src.io import rw
 from src.dataloading.dataset import generate_iterable_with_filenames
 
@@ -30,10 +30,9 @@ def collect_intensities_per_channel(
     assert not np.isnan(data).any() and data.ndim == seg.ndim == 4
     rs = np.random.RandomState(seed)
 
+    fg_mask = seg[0] > 0
     voxels_to_return = []
     intensity_stats = []
-    fg_mask = seg[0] > 0
-
     for c in range(data.shape[0]):
         fg_voxels_im = data[c][fg_mask]
         num_fg_voxels = len(fg_voxels_im)
@@ -158,7 +157,7 @@ def entrypoint():
     parser.add_argument('-np', '--num_processes', type=int, required=False, default=None)
 
     args = parser.parse_args()
-    args.num_processes = args.num_processes or os.cpu_count() // 4
+    args.num_processes = args.num_processes or get_default_num_processes() // 2
     run_and_save(args.input_folder, args.output_folder, args.num_processes)
 
 if __name__ == "__main__":

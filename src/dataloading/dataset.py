@@ -13,7 +13,7 @@ from src.utils import (
 from .unpack_dataset import unpack_dataset
 
 
-LISA_REGEX = r'LISA_(\d{4})_.*(?:\.nii(?:\.gz)?|\.np(?:z|y))'
+LISA_REGEX = r'(?:LISA|case)_(\d{4})_?.*(?:\.nii(?:\.gz)?|\.np(?:z|y))'
 
 def _get_identifiers(folder: str) -> set[str]:
     data_regex = re.compile(LISA_REGEX)

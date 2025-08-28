@@ -1,6 +1,6 @@
 from src.trainer import Trainer
 from src.config import get_configs
-from src.utils import timestampify
+from src.utils import timestampify, get_default_device
 
 
 def train(training_config, arch_kwargs, device: str, output_folder: str):
@@ -13,7 +13,7 @@ def train_entrypoint():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-net', '--network_architecture', type=str,
-                        choices=['unet', 'plainconvunet', 'mednext'],
+                        choices=['unet', 'plainconvunet', 'mednext', 'resunet'],
                         dest='net',
                         default='unet')
     parser.add_argument('-tmem', '--target_memory', type=int,
@@ -29,7 +29,6 @@ def train_entrypoint():
                         dest='training_iters_per_epoch')
     parser.add_argument('-viter', '--val_iters_per_epoch', type=int)
     parser.add_argument('-nep', '--num_epochs', type=int)
-    parser.add_argument('-pcross', '--p_cross_sectional', type=float)
     parser.add_argument('--save_every', type=int,
                         help='Number of epochs between training checkpoint saves.')
     parser.add_argument('-np', '--num_processes', type=int)
@@ -37,8 +36,8 @@ def train_entrypoint():
 
     # this have to be removed from the return dict. However, we could
     # move them to TrainingConfig as well.
-    parser.add_argument('--device', type=str, default='mps')
-    parser.add_argument('-o', '--output_folder', default=timestampify('timelessegv2_trained_models'))
+    parser.add_argument('--device', type=str, default=get_default_device())
+    parser.add_argument('-o', '--output_folder', default=timestampify('LISA_trained_models'))
 
     args = parser.parse_args()
 

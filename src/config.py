@@ -4,11 +4,12 @@ from src.configs import get_default_training_config, ArchKwargs
 from src.experiment_planning import plan_experiment
 from src.preprocessing.preprocessing import get_preprocessing_config_from_dataset_fingerprint
 
-TRAINING_PATH = abspath('training_data/preprocessed')
-TRAINING_PATH_RAW = abspath('training_data/raw')
-VALIDATION_PATH = abspath('validation_data/preprocessed')
-DATASET_FINGERPRINT_PATH = abspath('training_data/raw/dataset_fingerprint.json')
-LABELS = list(range(8 + 1))
+from .data_stuff import (
+    DATASET_FINGERPRINT_PATH,
+    TRAINING_PATH,
+    VALIDATION_PATH
+)
+
 
 def get_preprocessing_config(dataset_fingerprint_path: str = DATASET_FINGERPRINT_PATH):
     return get_preprocessing_config_from_dataset_fingerprint(dataset_fingerprint_path)

@@ -5,6 +5,9 @@ import logging
 import typing as ty
 import time
 
+import nibabel as nib
+import numpy as np
+
 
 remove = os.remove
 listdir = os.listdir
@@ -16,6 +19,18 @@ isfile = os.path.isfile
 abspath = os.path.abspath
 
 
+DEFAULT_NUM_PROCESSES = 12
+def get_default_num_processes() -> int:
+    return min(DEFAULT_NUM_PROCESSES, os.cpu_count())
+
+def get_default_device() -> str:
+    import torch
+    device = 'cpu'
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.mps.is_available():
+        device = 'mps'
+    return device
 
 def maybe_mkdir(_dir: str):
     os.makedirs(_dir, exist_ok=True)
@@ -38,6 +53,9 @@ def write_pickle(obj, file: str, mode: str = 'wb') -> None:
     with open(file, mode) as f:
         pickle.dump(obj, f)
 
+def save_nifti(data: np.ndarray, save_path: str, affine: np.ndarray, header = None):
+    nifti = nib.Nifti1Image(data, affine, header)
+    nib.save(nifti, save_path)
 
 def setup_loggers(*logger_names: str, verbosity: str, log_file: str,
                   console_verbosity: str = None, return_logger: bool = False) -> ty.Union[logging.Logger, None]:

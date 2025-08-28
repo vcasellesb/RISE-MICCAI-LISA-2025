@@ -3,7 +3,7 @@ import nibabel as nib
 from skimage.restoration import estimate_sigma
 
 
-from .utils import join, maybe_mkdir, exists
+from .utils import join, maybe_mkdir, exists, save_nifti
 
 from .preprocessing.brain_segmentation import segment_brain
 from .preprocessing.cropping_ciso import crop_with_seg
@@ -20,11 +20,6 @@ RAW_DATASET_PATH = 'datasets/2025Task2/'
 # 2. Cropping amb brainseg
 # 3. Bm3d
 # 4. SynthSR
-
-
-def save_nifti(data: np.ndarray, save_path: str, affine: np.ndarray, header = None):
-    nifti = nib.Nifti1Image(data, affine, header)
-    nib.save(nifti, save_path)
 
 
 def get_raw_case_dict(identifier: str) -> dict[str, str]:
