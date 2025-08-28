@@ -1,17 +1,16 @@
 import numpy as np
 import nibabel as nib
+from skimage.restoration import estimate_sigma
 
 
 from .utils import join, maybe_mkdir, exists
 
 from .preprocessing.brain_segmentation import segment_brain
 from .preprocessing.cropping_ciso import crop_with_seg
-from .preprocessing.upscale_and_denoise import denoise_w_bm3d
+from .preprocessing.upscale_and_denoise import denoise_w_chambolle, sharpen_and_denoise
 from .preprocessing.synthsr import run_synthsr_on_lowfield_scan
 
 from .dataloading.dataset import get_identifiers
-
-from .paths import TRAINING_DATA
 
 
 RAW_DATASET_PATH = 'datasets/2025Task2/'
@@ -32,42 +31,45 @@ def get_raw_case_dict(identifier: str) -> dict[str, str]:
     this_case = {
         'LF': join(RAW_DATASET_PATH, 'Low Field Images', 'LISA_%s_ciso.nii.gz' % identifier),
         'HIPP': join(RAW_DATASET_PATH, 'Subtask 2a - Hippocampus Segmentations', 'LISA_%s_HF_hipp.nii.gz' % identifier),
-        'BAGA': join(RAW_DATASET_PATH, 'Subtask 2b - Basal Ganglia Segmentations', 'LISA_%s_HF_baga.nii.gz' % identifier)
+        'BAGA': join(RAW_DATASET_PATH, 'Subtask 2b - Basal Ganglia Segmentations', 'LISA_%s_HF_baga.nii.gz' % identifier),
+        'VENT': join(RAW_DATASET_PATH, 'Extra Segmentations', 'Ventricle', 'LISA_%s_vent.nii.gz' % identifier)
     }
     return this_case
 
 
-def prepare_segmentation(hipp: str, baga: str) -> np.ndarray:
+def prepare_segmentation(hipp: str, baga: str, vent: str) -> np.ndarray:
     hipp = nib.load(hipp)
     seg: np.ndarray = np.asanyarray(hipp.dataobj)
     assert set(np.unique(seg.ravel())) == {0, 1, 2}, set(np.unique(seg.ravel()))
 
+    vent_seg = np.asanyarray(nib.load(vent).dataobj)
+
     baga_seg: np.ndarray = np.asanyarray(nib.load(baga).dataobj)
     assert (
-        baga_seg.shape == seg.shape and
-        set(np.unique(baga_seg.ravel())) == {0, 5, 6, 7, 8}
+        baga_seg.shape == seg.shape == vent_seg.shape and
+        set(np.unique(baga_seg.ravel())) == {0, 5, 6, 7, 8} and
+        set(np.unique(vent_seg.ravel())) == {0, 3, 4}
     ), baga
 
-    # we need to go from [5, 6, 7, 8] to [3, 4, 5, 6]
-    # I try to be fancy w it
-    mask = baga_seg > 0
-    baga_seg[mask] = baga_seg[mask] - 2
-
-    # I do have OCD tho
-    assert (
-        baga_seg.shape == seg.shape and
-        set(np.unique(baga_seg.ravel())) == {0, 3, 4, 5, 6}
-    ), baga
-
-    if (seg * baga_seg).any():
+    intersection = seg * baga_seg
+    if intersection.any():
         assert baga.endswith('LISA_0033_HF_baga.nii.gz')
-        baga_seg = np.where(baga_seg * seg, 0, baga_seg)
+        baga_seg = np.where(intersection, 0, baga_seg)
+    seg = seg + baga_seg
+    del baga_seg
 
-    assert not (seg * baga_seg).any(), baga
+    intersection = seg * vent_seg
+    if intersection.any():
+        print('Intersection between vent and hipp|baga')
+        vent_seg = np.where(intersection, 0, vent_seg)
 
-    return baga_seg + seg
+    return vent_seg + seg
 
+def get_weight(data: np.ndarray) -> float:
+    sigma_hat = estimate_sigma(data)
+    return np.round(sigma_hat, 2) * 10 + 0.1
 
+WEIGHT_CHAMBOLLE = 0.2
 def process_lowfield_image(
     image: str,
     gt: np.ndarray,
@@ -83,14 +85,16 @@ def process_lowfield_image(
     data = im.get_fdata()
     cropped_data, _, slicer = crop_with_seg(data, brain_segmentation, dil=5)
 
-    denoised_data = denoise_w_bm3d(cropped_data)
+    weight = get_weight(cropped_data)
+
+    denoised_data = denoise_w_chambolle(cropped_data, **{'weight': weight})
 
     save_nifti(denoised_data, lowfield_out, im.affine)
 
     run_synthsr_on_lowfield_scan(lowfield_out, sr_out, nthreads=2)
 
     gt = gt[slicer]
-    save_nifti(gt, gt_out, im.affine)
+    save_nifti(gt.astype(np.uint8), gt_out, im.affine)
 
 
 def prepare_output_filenames(identifier, output_folder):
@@ -141,8 +145,6 @@ def mylilcheck():
     assert set_baga == {0, 5, 6, 7, 8}, set_baga
 
 
-
-
 if __name__ == "__main__":
     lowfield, sr, seg = prepare_output_filenames('0001', 'liltest')
     assert (
@@ -154,7 +156,8 @@ if __name__ == "__main__":
         )
     )
 
+    from .config import TRAINING_PATH_RAW
     prepare_raw_training_data(
-        join(TRAINING_DATA, 'raw')
+        TRAINING_PATH_RAW
     )
     # mylilcheck()
