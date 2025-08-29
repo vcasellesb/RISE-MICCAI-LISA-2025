@@ -77,7 +77,7 @@ class Predictor:
             self.allowed_mirror_axes
         ) = self._initialize_manually(network, training_config, arch_kwargs, allowed_mirror_axes)
 
-    
+
     @classmethod
     def from_checkpoint_path(cls,
                              checkpoint_path: str,
@@ -100,12 +100,12 @@ class Predictor:
         predictor = cls(
             network, training_config, arch_kwargs, allowed_mirror_axes,
             preprocessing_config, tile_step_size, use_gaussian, use_mirroring,
-            perform_everything_on_device, device, verbose, verbose_preprocessing, 
+            perform_everything_on_device, device, verbose, verbose_preprocessing,
             allow_tqdm, num_processes_export
         )
         return predictor
 
-    
+
     @staticmethod
     def _initialize_from_checkpoint(
         checkpoint_path: str
@@ -326,15 +326,16 @@ class Predictor:
 
 
     def predict_from_data_iterator(
-            self,
-            data_iterator,
-            num_processes_segmentation_export: int,
-            save_probabilities: bool = False
-        ):
+        self,
+        data_iterator,
+        num_processes_segmentation_export: int,
+        save_probabilities: bool = False
+    ):
         """
         each element returned by data_iterator must be a dict with 'data', 'ofile' (can be None), 'data_properties' and 'identifier' keys!
         If 'ofile' is None, the result will be returned instead of written to a file
         """
+
         with multiprocessing.get_context("spawn").Pool(num_processes_segmentation_export) as export_pool:
             worker_list = [i for i in export_pool._pool]
             r = []

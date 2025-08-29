@@ -65,6 +65,7 @@ def get_weight(data: np.ndarray) -> float:
     return np.round(sigma_hat, 2) * 10 + 0.1
 
 WEIGHT_CHAMBOLLE = 0.2
+DEFAULT_DIL = 5
 def process_lowfield_image(
     image: str,
     gt: np.ndarray,
@@ -78,7 +79,7 @@ def process_lowfield_image(
 
     im: nib.Nifti1Image = nib.load(image)
     data = im.get_fdata()
-    cropped_data, _, slicer = crop_with_seg(data, brain_segmentation, dil=5)
+    cropped_data, _, slicer = crop_with_seg(data, brain_segmentation, dil=DEFAULT_DIL)
 
     weight = get_weight(cropped_data)
 
@@ -151,7 +152,7 @@ if __name__ == "__main__":
         )
     )
 
-    from .config import TRAINING_PATH_RAW
+    from .data_stuff import TRAINING_PATH_RAW
     prepare_raw_training_data(
         TRAINING_PATH_RAW
     )
