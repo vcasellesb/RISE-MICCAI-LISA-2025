@@ -7,7 +7,7 @@ from .utils import join, maybe_mkdir, exists, save_nifti
 
 from .preprocessing.brain_segmentation import segment_brain
 from .preprocessing.cropping_ciso import crop_with_seg
-from .preprocessing.upscale_and_denoise import denoise_w_chambolle, sharpen_and_denoise
+from .preprocessing.upscale_and_denoise import denoise_w_chambolle, sharpen_and_denoise, denoise_w_nlmeans
 from .preprocessing.synthsr import run_synthsr_on_lowfield_scan
 
 from .dataloading.dataset import get_identifiers
@@ -60,12 +60,7 @@ def prepare_segmentation(hipp: str, baga: str, vent: str) -> np.ndarray:
 
     return vent_seg + seg
 
-def get_weight(data: np.ndarray) -> float:
-    sigma_hat = estimate_sigma(data)
-    return np.round(sigma_hat, 2) * 10 + 0.1
 
-WEIGHT_CHAMBOLLE = 0.2
-DEFAULT_DIL = 5
 def process_lowfield_image(
     image: str,
     gt: np.ndarray,
@@ -79,11 +74,9 @@ def process_lowfield_image(
 
     im: nib.Nifti1Image = nib.load(image)
     data = im.get_fdata()
-    cropped_data, _, slicer = crop_with_seg(data, brain_segmentation, dil=DEFAULT_DIL)
+    cropped_data, _, slicer, _ = crop_with_seg(data, brain_segmentation)
 
-    weight = get_weight(cropped_data)
-
-    denoised_data = denoise_w_chambolle(cropped_data, **{'weight': weight})
+    denoised_data = denoise_w_chambolle(cropped_data, **{'weight': None})
 
     save_nifti(denoised_data, lowfield_out, im.affine)
 
@@ -154,6 +147,6 @@ if __name__ == "__main__":
 
     from .data_stuff import TRAINING_PATH_RAW
     prepare_raw_training_data(
-        TRAINING_PATH_RAW
+        'raw_nlmeans_fast_defaultps'
     )
     # mylilcheck()

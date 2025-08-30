@@ -2,14 +2,16 @@ import numpy as np
 from skimage.filters import unsharp_mask
 from skimage.restoration import (
     denoise_tv_chambolle,
-    denoise_wavelet
+    denoise_wavelet,
+    denoise_nl_means,
+    estimate_sigma
 )
 import nibabel as nib
-from bm3d import bm3d
 
-
-
-from .brain_segmentation import segment_brain
+if False:
+    from bm3d import bm3d
+    def denoise_w_bm3d(image: np.ndarray, sigma_psd: float = 0.2, **bm3d_kwargs) -> np.ndarray:
+        return bm3d(image, sigma_psd, **bm3d_kwargs)
 
 
 def unsharp_masking(image: np.ndarray, radius: int, amount: int) -> np.ndarray:
@@ -18,20 +20,27 @@ def unsharp_masking(image: np.ndarray, radius: int, amount: int) -> np.ndarray:
 def apply_filter(image: np.ndarray, f, **filter_kwargs) -> np.ndarray:
     return f(image, **filter_kwargs)
 
-def denoise_w_bm3d(image: np.ndarray, sigma_psd: float = 0.2, **bm3d_kwargs) -> np.ndarray:
-    return bm3d(image, sigma_psd, **bm3d_kwargs)
+DEFAULT_WEIGHT_CHAMBOLLE = 0.2
 
-def denoise_w_chambolle(image: np.ndarray, weight: float, **chambolle_kwargs) -> np.ndarray:
+def get_weight(data: np.ndarray) -> float:
+    sigma_hat = estimate_sigma(data)
+    return np.round(sigma_hat, 2) * 10 + 0.1
+
+def denoise_w_chambolle(image: np.ndarray, weight: float = None, **chambolle_kwargs) -> np.ndarray:
+    if weight is None:
+        weight = get_weight(image)
     return denoise_tv_chambolle(image, weight, **chambolle_kwargs)
+
+
+def denoise_w_nlmeans(image: np.ndarray, **nl_means_kwargs) -> np.ndarray:
+    return denoise_nl_means(image, **nl_means_kwargs)
 
 
 def sharpen_and_denoise(image: np.ndarray, sharpen_kwargs: dict = None, denoise_kwargs: dict = None):
     sharpen_kwargs = sharpen_kwargs or {'radius': 3, 'amount': 1}
     image = unsharp_masking(image, **sharpen_kwargs)
-
     denoise_kwargs = denoise_kwargs or {'weight': 0.1}
     image = denoise_tv_chambolle(image, **denoise_kwargs)
-
     return image
 
 

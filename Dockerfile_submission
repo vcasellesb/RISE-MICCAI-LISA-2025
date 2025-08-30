@@ -20,7 +20,8 @@ WORKDIR /vcasellesb-LISA
 COPY . .
 
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir ./synthsr && pip install --no-cache-dir ./HD-BET
+    pip install --no-cache-dir ./synthsr && \
+    pip install --no-cache-dir ./HD-BET
 
 # # Install Python dependencies listed in requirements.txt.
 # # Use --no-cache-dir to reduce image size, and --break-system-packages to allow installation
@@ -31,4 +32,4 @@ RUN pip install --upgrade pip && \
 #     -r requirements.txt
 
 # # Set the main command to run your model script when the container starts.
-# ENTRYPOINT ["python", "-m", "src.run_dockerized"]
+ENTRYPOINT ["python", "-m", "src.run_dockerized"]
