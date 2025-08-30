@@ -1,1 +1,2 @@
-from .trainer import Trainer
+# Fucking circular imports
+# from .trainer import Trainer

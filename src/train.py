@@ -1,4 +1,4 @@
-from src.trainer import Trainer
+from src.trainer.trainer import Trainer
 from src.config import get_configs
 from src.utils import timestampify, get_default_device
 
