@@ -32,8 +32,7 @@ def final_validation_from_trainer(
                           allowed_mirror_axes, preprocessing_config,
                           tile_step_size=0.5, use_gaussian=True, use_mirroring=True,
                           perform_everything_on_device=True, device=device, verbose=True,
-                          verbose_preprocessing=True, allow_tqdm=True,
-                          num_processes_export=training_config.num_processes)
+                          verbose_preprocessing=True, allow_tqdm=True)
 
     validation_dataset = Dataset(folder=training_config.validation_data_path)
 
@@ -79,7 +78,7 @@ def _final_validation(
             results.append(
                 segmentation_export_pool.starmap_async(
                     export_prediction_from_logits, [
-                        (prediction, properties, preprocessing_config, num_processes,
+                        (prediction, properties, preprocessing_config,
                             False, output_file, '.nii.gz'),
                     ]
                 )

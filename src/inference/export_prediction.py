@@ -186,10 +186,10 @@ def export_prediction_from_logits(
     predicted_array: np.ndarray | torch.Tensor,
     properties: dict,
     preprocessing_config: PrepConfig,
-    num_threads_torch: int,
     save_probabilities: bool,
     outfile: str | None,
-    file_ending: str = '.nii.gz'
+    file_ending: str = '.nii.gz',
+    num_threads_torch: int = 8
 ):
 
     ret = convert_predicted_logits_to_segmentation_with_correct_shape(

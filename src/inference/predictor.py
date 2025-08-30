@@ -13,6 +13,7 @@ import numpy as np
 
 from src.utils import get_default_device
 from src.trainer.utils import empty_cache, dummy_context
+from src.preprocessing.preprocessing import get_normalizers, get_resamplers
 
 from .utils import (
     pad_nd_image,
@@ -21,6 +22,7 @@ from .utils import (
     check_workers_alive_and_busy
 )
 from .export_prediction import export_prediction_from_logits
+from .preprocessing import preprocessing_iterator_from_list
 
 
 class Predictor:
@@ -42,8 +44,7 @@ class Predictor:
         device: torch.device = torch.device(get_default_device()),
         verbose: bool = True,
         verbose_preprocessing: bool = False,
-        allow_tqdm: bool = True,
-        num_processes_export: int = 8
+        allow_tqdm: bool = True
     ):
         """
         Predictor can be initialized either with a path to a checkpoint (easier), or by supplying the network (initialized),
@@ -68,7 +69,6 @@ class Predictor:
         self.perform_everything_on_device = perform_everything_on_device
 
         self.allow_tqdm = allow_tqdm
-        self.num_processes_export = num_processes_export
 
         (
             self.network,
@@ -89,8 +89,7 @@ class Predictor:
                              device: str | torch.device = get_default_device(),
                              verbose: bool = True,
                              verbose_preprocessing: bool = False,
-                             allow_tqdm: bool = True,
-                             num_processes_export: int = 8):
+                             allow_tqdm: bool = True):
 
         network, training_config, arch_kwargs, allowed_mirror_axes = cls._initialize_from_checkpoint(checkpoint_path)
 
@@ -101,7 +100,7 @@ class Predictor:
             network, training_config, arch_kwargs, allowed_mirror_axes,
             preprocessing_config, tile_step_size, use_gaussian, use_mirroring,
             perform_everything_on_device, device, verbose, verbose_preprocessing,
-            allow_tqdm, num_processes_export
+            allow_tqdm
         )
         return predictor
 
@@ -180,7 +179,7 @@ class Predictor:
 
 
     @torch.inference_mode()
-    def predict_logits_from_preprocessed_data(self, data: torch.Tensor, default_num_processes: int) -> torch.Tensor:
+    def predict_logits_from_preprocessed_data(self, data: torch.Tensor, default_num_processes: int = 8) -> torch.Tensor:
         """
         RETURNED LOGITS HAVE THE SHAPE OF THE INPUT. THEY MUST BE CONVERTED BACK TO THE ORIGINAL IMAGE SIZE.
         SEE convert_predicted_logits_to_segmentation_with_correct_shape
@@ -344,8 +343,6 @@ class Predictor:
 
                 ofile = preprocessed['ofile']
 
-                print('Predicting case "%s"' % preprocessed['identifier'])
-
                 print(f'perform_everything_on_device: {self.perform_everything_on_device}')
 
                 properties = preprocessed['data_properties']
@@ -364,12 +361,10 @@ class Predictor:
                 r.append(
                     export_pool.starmap_async(
                         export_prediction_from_logits,
-                        [(prediction, properties, self.preprocessing_config, self.num_processes_export,
+                        [(prediction, properties, self.preprocessing_config,
                           save_probabilities, ofile, '.nii.gz')]
                     )
                 )
-
-                print('Done with case "%s"' % preprocessed['identifier'])
 
             ret = [i.get()[0] for i in r]
 
@@ -378,3 +373,33 @@ class Predictor:
         # clear device cache
         empty_cache(self.device)
         return ret
+
+
+    def predict_from_list_of_files(
+        self,
+        list_of_files: list[str],
+        outfiles: list[str] |  None,
+        brain_seg_paths: list[str],
+        verbose: bool,
+        num_processes_prep: int,
+        tmpdir: str,
+        num_processes_export: int,
+        save_probabilities: bool = False
+    ):
+
+        normalizers_per_channel = get_normalizers()
+        resampler_data, resampler_seg = get_resamplers()
+        preprocessing_kwargs = {
+            'target_spacing': self.preprocessing_config.target_spacing,
+            'transpose_forward': self.preprocessing_config.transpose_forward,
+            'normalizers_per_channel': normalizers_per_channel,
+            'resampling_data_function': resampler_data,
+            # 'resampling_seg_function': resampler_seg,
+            'verbose': verbose
+        }
+
+        data_iterator = preprocessing_iterator_from_list(list_of_files, outfiles, brain_seg_paths,
+                                                         preprocessing_kwargs, num_processes_prep,
+                                                         tmpdir, pin_memory = self.device == "cuda")
+
+        return self.predict_from_data_iterator(data_iterator, num_processes_export, save_probabilities=save_probabilities)

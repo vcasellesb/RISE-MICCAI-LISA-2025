@@ -45,7 +45,6 @@ from .utils import (
     dummy_context
 )
 from ._training_progress import TrainingProgressTracker
-from .final_validation import final_validation_from_trainer
 from .plotting import plot_batched_segmentations
 
 
@@ -438,6 +437,8 @@ class Trainer:
 
 
     def run_final_validation(self, preprocessing_config = None):
+        # This is here since in the cluster I train on I don't have synthsr, hd-bet -- all imported w the following line...
+        from .final_validation import final_validation_from_trainer
 
         validation_results_folder = join(self.output_folder, 'final_validation_results')
         predictions_dict = final_validation_from_trainer(
@@ -474,9 +475,10 @@ class Trainer:
             with torch.no_grad():
                 self._on_validation_epoch_start()
                 validation_outputs = []
-                plot_on_iter = np.random.choice(self.config.val_iters_per_epoch, size = 2)
+                ## I TURN OFF PLOTTING BECAUSE IT WASTES TIME AND MEMORY
+                # plot_on_iter = np.random.choice(self.config.val_iters_per_epoch, size = 2)
                 for batch_id in range(self.config.val_iters_per_epoch):
-                    validation_outputs.append(self.validation_step(next(self.dataloader_val), plot_batch=(batch_id in plot_on_iter)))
+                    validation_outputs.append(self.validation_step(next(self.dataloader_val), plot_batch=False))
                 self._on_validation_epoch_end(validation_outputs)
 
             self.finish_epoch()
@@ -485,5 +487,4 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    
     pass
