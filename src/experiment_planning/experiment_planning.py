@@ -33,12 +33,12 @@ def get_reference_values(net_name: str) -> tuple[int, int]:
                 reference_gb
             ) = 680_000_000, 8
 
-        # these are taken from ResEncUNetPlannerL
+        # these are taken from ResEncUNetPlannerXL
         case 'resunet' | 'mednext':
             (
                 reference_consum,
                 reference_gb
-            ) = 2_100_000_000, 24
+            ) = 3_600_000_000, 40
 
         case _:
             raise NotImplementedError(net_name)
