@@ -1,15 +1,16 @@
+from collections.abc import Callable
 import numpy as np
 from skimage.measure import label
-from collections.abc import Callable
 
 from .cropping import get_bbox_from_mask, bounding_box_to_slice, binary_dilation, binary_fill_holes
 
 
+DEFAULT_DIL = 5
 def crop_with_seg(
     data: np.ndarray,
     seg: np.ndarray,
-    dil: int = 0
-) -> tuple[np.ndarray, np.ndarray]:
+    dil: int = DEFAULT_DIL
+) -> tuple:
 
     if dil > 0:
         seg = binary_dilation(seg, iterations=dil)
@@ -19,7 +20,7 @@ def crop_with_seg(
     seg = seg[slicer]
     data = data[slicer]
 
-    return data, seg, slicer
+    return data, seg, slicer, bbox
 
 def crop_to_nonzero_ciso(
     data: np.ndarray,
