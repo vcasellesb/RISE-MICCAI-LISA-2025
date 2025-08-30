@@ -139,7 +139,7 @@ def plan_experiment(preprocessing_config,
 
     # cap batch size to be at least 2 but not be greater than 5% of the total number of voxels per batch
     batch_size = max(
-        min(batch_size, n_voxels_in_dataset * 0.05 / np.prod(patch_size)),
+        min(batch_size, round(n_voxels_in_dataset * 0.05 / np.prod(patch_size))),
         MIN_BATCH_SIZE
     )
 
