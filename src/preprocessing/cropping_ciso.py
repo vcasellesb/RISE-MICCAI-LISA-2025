@@ -1,8 +1,9 @@
 from collections.abc import Callable
 import numpy as np
 from skimage.measure import label
+from scipy.ndimage import binary_dilation, binary_fill_holes
 
-from .cropping import get_bbox_from_mask, bounding_box_to_slice, binary_dilation, binary_fill_holes
+from .cropping import get_bbox_from_mask, bounding_box_to_slice
 
 
 DEFAULT_DIL = 5

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np
-from scipy.ndimage import binary_fill_holes, binary_dilation
+from scipy.ndimage import binary_fill_holes
 import torch
 from torch.nn import functional as F
 
