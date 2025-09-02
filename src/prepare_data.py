@@ -1,13 +1,12 @@
 import numpy as np
 import nibabel as nib
-from skimage.restoration import estimate_sigma
 
 
 from .utils import join, maybe_mkdir, exists, save_nifti
 
 from .preprocessing.brain_segmentation import segment_brain
 from .preprocessing.cropping_ciso import crop_with_seg
-from .preprocessing.upscale_and_denoise import denoise_w_chambolle, sharpen_and_denoise, denoise_w_nlmeans
+from .preprocessing.upscale_and_denoise import denoise_w_chambolle
 from .preprocessing.synthsr import run_synthsr_on_lowfield_scan
 
 from .dataloading.dataset import get_identifiers
@@ -70,6 +69,7 @@ def process_lowfield_image(
 ) -> None:
 
     # HD-BET uses sitk so we need to transpose data
+    # TODO: move to sitk
     brain_segmentation = segment_brain(image).transpose([2, 1, 0])
 
     im: nib.Nifti1Image = nib.load(image)
@@ -98,10 +98,12 @@ def prepare_output_filenames(identifier, output_folder):
 
 
 def prepare_raw_training_data(
+    input_folder: str,
     output_folder: str
 ) -> None:
+
     maybe_mkdir(output_folder)
-    identifiers = get_identifiers(join(RAW_DATASET_PATH, 'Low Field Images'))
+    identifiers = get_identifiers(input_folder)
     for identifier in identifiers:
         case_dict = get_raw_case_dict(identifier)
         lowfield_out, sr_out, seg_out = prepare_output_filenames(identifier, output_folder)
@@ -111,6 +113,16 @@ def prepare_raw_training_data(
         gt = prepare_segmentation(**{k.lower(): v for k, v in case_dict.items()})
         process_lowfield_image(lowfield_in, gt, lowfield_out, sr_out, seg_out)
 
+
+def entrypoint():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('output_folder', type=str)
+    parser.add_argument('--input_folder', '-i', type=str,
+                        default=join(RAW_DATASET_PATH, 'Low Field Images'))
+    args = parser.parse_args()
+
+    prepare_raw_training_data(args.input_folder, args.output_folder)
 
 
 def mylilcheck():
@@ -128,7 +140,7 @@ def mylilcheck():
         baga_seg = np.asanyarray(nib.load(case_dict['BAGA']).dataobj)
         set_hipp |= set(np.unique(hipp_seg.ravel()))
         set_baga |= set(np.unique(baga_seg.ravel()))
-    
+
 
     assert set_hipp == {0, 1, 2}, set_hipp
     assert set_baga == {0, 5, 6, 7, 8}, set_baga
@@ -145,8 +157,9 @@ if __name__ == "__main__":
         )
     )
 
-    from .data_stuff import TRAINING_PATH_RAW
-    prepare_raw_training_data(
-        'raw_nlmeans_fast_defaultps'
-    )
+    # from .data_stuff import TRAINING_PATH_RAW
+    # prepare_raw_training_data(
+    #     'raw_nlmeans_fast_defaultps'
+    # )
     # mylilcheck()
+    entrypoint()
