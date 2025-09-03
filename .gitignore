@@ -2,3 +2,8 @@ datasets
 .DS_Store
 **/__pycache__/
 synapse_token
+test*/
+train*/
+resunet_results*
+*trained_models/
+LISA_dockerized_inference*/

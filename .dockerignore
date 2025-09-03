@@ -1,8 +1,8 @@
 **/*.egg-info
 **/__pycache__/
 
-synthsr/models/
-!synthsr/models/synthsr_lowfield_v20_230130.h5
+SynthSR/models/
+!SynthSR/models/synthsr_lowfield_v20_230130.h5
 
 datasets
 
@@ -10,6 +10,7 @@ test*/
 
 training_data/
 
+.DS_Store
 **/DS.Store
 
 Dockerfile*
@@ -18,4 +19,13 @@ license.txt
 synapse_token
 *.sh
 
-**/*.json
+_trained_models
+LISA_dockerized_inference*/
+resunet_results*/
+
+
+.dockerignore
+.git
+.gitignore
+
+**/.git*
