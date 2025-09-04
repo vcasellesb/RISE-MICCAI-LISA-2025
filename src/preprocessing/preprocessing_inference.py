@@ -96,6 +96,7 @@ def _preprocess_case_inference(
 
 def preprocess_case(lowfield_scan: str,
                     preprocessing_kwargs: dict,
+                    synthsr_kwargs: dict,
                     tmpdir: str,
                     brain_seg_path: str):
 
@@ -116,7 +117,7 @@ def preprocess_case(lowfield_scan: str,
 
     tmp_sr_scan = join(tmpdir, basename(lowfield_scan).replace('.nii.gz', '_SR.nii.gz'))
 
-    run_synthsr_on_lowfield_scan(tmp_lowfield_scan, tmp_sr_scan, nthreads=2)
+    run_synthsr_on_lowfield_scan(tmp_lowfield_scan, tmp_sr_scan, **synthsr_kwargs)
 
     # now prepare data for normalization etc
     data, _ = rw.read_images((tmp_lowfield_scan, tmp_sr_scan))

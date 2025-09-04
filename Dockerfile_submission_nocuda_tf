@@ -5,31 +5,24 @@
 # Always pin the version (e.g., python:3.10-slim) to ensure reproducibility.
 FROM python:3.10-slim
 
+# # Set the working directory for the COPY, RUN, and ENTRYPOINT commands.
+WORKDIR /vcasellesb-LISA
+
+COPY . .
+
 # Install essential build tools such as gcc/g++ that may be needed to compile certain Python packages.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     g++ && \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir tensorflow-cpu && \
+    pip install --no-cache-dir torch && \
+    pip install --no-cache-dir PyWavelets && \
+    pip install --no-cache-dir -e ./SynthSR && \
+    pip install --no-cache-dir -e ./HD-BET && \
     rm -rf /var/lib/apt/lists/*
-
-# # Set the working directory for the COPY, RUN, and ENTRYPOINT commands.
-WORKDIR /vcasellesb-LISA
-
-# # Copy all files from the build context into the image.
-COPY . .
-
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir ./synthsr && \
-    pip install --no-cache-dir ./HD-BET
-
-# # Install Python dependencies listed in requirements.txt.
-# # Use --no-cache-dir to reduce image size, and --break-system-packages to allow installation
-# # even if it modifies system-managed packages (use cautiously).
-# RUN pip install \
-#     --no-cache-dir \
-#     --break-system-packages \
-#     -r requirements.txt
 
 # # Set the main command to run your model script when the container starts.
 ENTRYPOINT ["python", "-m", "src.run_dockerized"]

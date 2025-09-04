@@ -1,0 +1,47 @@
+# FROM: https://github.com/LISAChallengeOfficial/sample-model-templates/blob/main/python/Dockerfile
+
+# Define the base of your image.
+# Specifying `--platform=linux/amd64` ensures compatibility when building on Apple Silicon (M1/M2).
+# Always pin the version (e.g., python:3.10-slim) to ensure reproducibility.
+FROM python:3.10-slim
+
+# # Set the working directory for the COPY, RUN, and ENTRYPOINT commands.
+WORKDIR /vcasellesb-LISA
+
+COPY . .
+
+ARG NVIDIA_CONTAINER_TOOLKIT_VERSION="1.17.8-1"
+
+# Install essential build tools such as gcc/g++ that may be needed to compile certain Python packages.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    curl \
+    gpg \
+    sed \
+    coreutils \
+    ca-certificates && \
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+    gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg && \
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+    nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+    nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+    libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+    libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION} && \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir -e ./SynthSR && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir torch && \
+    pip install --no-cache-dir -e ./HD-BET && \
+    pip install --no-cache-dir PyWavelets && \
+    rm -rf /var/lib/apt/lists/*
+
+# # Set the main command to run your model script when the container starts.
+ENTRYPOINT ["python", "-m", "src.run_dockerized"]

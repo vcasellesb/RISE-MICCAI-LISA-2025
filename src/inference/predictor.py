@@ -384,6 +384,7 @@ class Predictor:
         num_processes_prep: int,
         tmpdir: str,
         num_processes_export: int,
+        synthsr_kwargs: dict,
         save_probabilities: bool = False
     ):
 
@@ -399,7 +400,8 @@ class Predictor:
         }
 
         data_iterator = preprocessing_iterator_from_list(list_of_files, outfiles, brain_seg_paths,
-                                                         preprocessing_kwargs, num_processes_prep,
-                                                         tmpdir, pin_memory = self.device == "cuda")
+                                                         preprocessing_kwargs, synthsr_kwargs,
+                                                         num_processes_prep, tmpdir,
+                                                         pin_memory=self.device == "cuda")
 
         return self.predict_from_data_iterator(data_iterator, num_processes_export, save_probabilities=save_probabilities)

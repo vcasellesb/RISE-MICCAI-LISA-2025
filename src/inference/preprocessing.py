@@ -12,6 +12,7 @@ def preprocess_fromfiles_save_to_queue(
     output_filenames: list[str] | None,
     brain_segs_list: list[str],
     preprocessing_kwargs: dict,
+    synthsr_kwargs: dict,
     target_queue: Queue,
     done_event: Event,
     abort_event: Event,
@@ -23,6 +24,7 @@ def preprocess_fromfiles_save_to_queue(
             data, data_properties = preprocess_case(lowfield_scan=f,
                                                     brain_seg_path=brain_segs_list[i],
                                                     preprocessing_kwargs=preprocessing_kwargs,
+                                                    synthsr_kwargs=synthsr_kwargs,
                                                     tmpdir=tmpdir)
 
             data = torch.from_numpy(data).to(dtype=torch.float32, memory_format=torch.contiguous_format)
@@ -52,6 +54,7 @@ def preprocessing_iterator_from_list(
     output_filenames: list[str] | None,
     brain_seg_paths: list[str],
     preprocessing_kwargs: dict,
+    synthsr_kwargs: dict,
     num_processes: int,
     tmpdir,
     pin_memory: bool = False
@@ -74,6 +77,7 @@ def preprocessing_iterator_from_list(
             output_filenames[i::num_processes] if output_filenames is not None else None,
             brain_seg_paths[i::num_processes],
             preprocessing_kwargs,
+            synthsr_kwargs,
             queue,
             event,
             abort_event,

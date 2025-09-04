@@ -5,7 +5,8 @@ from glob import glob
 from synthsr import synthsr_main
 
 
-def run_synthsr_on_lowfield_scan(lowfield_scan: str, output_file: str, nthreads: int = 4) -> None:
+def run_synthsr_on_lowfield_scan(lowfield_scan: str, output_file: str,
+                                 nthreads: int = 4, force_cpu: bool = False) -> None:
     """
     Usage:
 
@@ -20,6 +21,8 @@ def run_synthsr_on_lowfield_scan(lowfield_scan: str, output_file: str, nthreads:
         output_file,
         nthreads
     )
+    if force_cpu:
+        command += ' --cpu'
     command = shlex.split(command)
     return synthsr_main(command[1:])
 
