@@ -69,7 +69,7 @@ def predict_from_files(list_of_files: list[str],
 
     SYNTHSR_KWARGS['nthreads'] = nthreads_synthsr
 
-    brain_seg_paths = segment_all_brains(list_of_files, tmpdir, num_processes_prep_hdbet, num_processes_export_hdbet, 
+    brain_seg_paths = segment_all_brains(list_of_files, tmpdir, num_processes_prep_hdbet, num_processes_export_hdbet,
                                          tile_step_size_hdbet, use_gaussian_hdbet, use_tta_hdbet)
 
     predictor = initialize_predictor(TRAINED_MODELS.get(models_path, TRAINED_MODELS['unet']))
