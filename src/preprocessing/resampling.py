@@ -150,7 +150,7 @@ def resample_data_or_seg_to_shape(
 def resample_data_or_seg(
     data: np.ndarray,
     new_shape: ArrayLike,
-    is_seg: bool = False, 
+    is_seg: bool = False,
     axis: Union[None, int] = None,
     order: int = 3,
     do_separate_z: bool = False,

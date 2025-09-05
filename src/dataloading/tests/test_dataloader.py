@@ -11,9 +11,9 @@ from ..dataset import Dataset
 
 def _get_transforms(patch_size, deep_supervision_scales):
     (
-        rotation_for_DA, 
-        do_dummy_2d_data_aug, 
-        initial_patch_size, 
+        rotation_for_DA,
+        do_dummy_2d_data_aug,
+        initial_patch_size,
         mirror_axes
     ) = configure_rotation_dummyDA_mirroring_and_inital_patch_size(patch_size)
 

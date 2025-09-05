@@ -69,7 +69,7 @@ def process_image(image_path: str, output_folder: str):
 
         # {'sigma_color': 0.5,
         #  'sigma_spatial': 15},
-         
+
         {'rescale_sigma': True},
 
         {'sigma_psd': 0.5}

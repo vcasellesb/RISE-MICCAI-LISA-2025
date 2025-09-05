@@ -30,7 +30,7 @@ def preprocess_fromfiles_save_to_queue(
             data = torch.from_numpy(data).to(dtype=torch.float32, memory_format=torch.contiguous_format)
 
             item = {
-                'data': data, 
+                'data': data,
                 'data_properties': data_properties,
                 'ofile': output_filenames[i] if output_filenames is not None else None
             }

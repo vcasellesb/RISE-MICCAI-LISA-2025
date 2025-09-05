@@ -178,7 +178,7 @@ if __name__ == "__main__":
         nonlin_kwargs={},
         return_skips=True
     ).to('mps')
-    
+
     dec = MedNeXTDecoder(
         enc,
         num_classes=2,

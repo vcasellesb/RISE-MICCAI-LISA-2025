@@ -76,7 +76,7 @@ class SqueezeExcite(nn.Module):
 
 def make_divisible(v, divisor = 8, min_value = None, round_limit = .9):
     """
-    This function is taken from the timm package 
+    This function is taken from the timm package
     (https://github.com/rwightman/pytorch-image-models/blob/b7cb8d0337b3e7b50516849805ddb9be5fc11644/timm/models/layers/helpers.py#L25)
     """
     min_value = min_value or divisor

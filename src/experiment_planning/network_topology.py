@@ -52,7 +52,7 @@ def get_pool_and_conv_props(
 
     # pool == downsampling
     num_pool_per_axis = [0] * dim
-    
+
     # these are initialized to 1 but may vary well be set to 3 in the first iteration
     kernel_size = [1] * dim
 

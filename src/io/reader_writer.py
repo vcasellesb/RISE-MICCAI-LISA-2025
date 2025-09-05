@@ -107,7 +107,7 @@ class SitkReaderWriter:
     def read_seg(self, seg_fname: str) -> Tuple[np.ndarray, dict]:
         """Segs are returned as 4D!"""
         return self.read_images((seg_fname, ))
-    
+
     def write_image(self, data: np.ndarray, output_fname: str, properties: dict, target_dtype = np.float32) -> None:
         assert data.ndim == 3
         itk_image = sitk.GetImageFromArray(data.astype(target_dtype, copy=False))
@@ -135,7 +135,7 @@ class SitkReaderWriter:
 class SitkReaderWriterReorientOnLoad(SitkReaderWriter):
     target_orient: str = 'RAS'
     reorienter = partial(_reorient_sitk, target_orient=target_orient)
-    
+
     def read_images(self, image_fnames: Iterable[str]) -> Tuple[np.ndarray, dict]:
         """Images are returned as 4D!"""
         images = []
@@ -262,8 +262,8 @@ class SitkReaderWriterReorientOnLoad(SitkReaderWriter):
         sitk.WriteImage(itk_image, output_fname, True)
 
 if __name__ == "__main__":
-    test_tuple = (-0.06978551800810884, -0.01851637726696271, -0.9973901570892877, 
-                  0.9960471045376788, -0.05637405266306358, -0.068644971028431, 
+    test_tuple = (-0.06978551800810884, -0.01851637726696271, -0.9973901570892877,
+                  0.9960471045376788, -0.05637405266306358, -0.068644971028431,
                   0.05495586427713073, 0.9982380026623159, -0.022377276284483338)
     print(_get_orientation_from_direction(test_tuple))
     import nibabel as nib

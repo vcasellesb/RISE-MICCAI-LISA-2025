@@ -3,7 +3,7 @@ from torch import nn
 
 from src._typing import ToIterableInt
 from src.models.utils import (
-    maybe_convert_scalar_to_list, 
+    maybe_convert_scalar_to_list,
     features_per_stage,
     convert_conv_op_to_dim
 )
@@ -88,7 +88,7 @@ class MedNeXT(nn.Module):
             input_size
         )
 
-    # see 
+    # see
     # https://github.com/MIC-DKFZ/dynamic-network-architectures/blob/6d9f47ebc53dfbc679c6c68a93f4f92d34cb3766/dynamic_network_architectures/architectures/unet.py#L279
     @staticmethod
     def initialize(module):

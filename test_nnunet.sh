@@ -34,8 +34,8 @@ if [ -e $dataset_json ]; then
 fi
 
 cat > $dataset_json <<EOF
-{ 
- "channel_names": { 
+{
+ "channel_names": {
    "0": "MRI",
    "1": "MRI"
  },

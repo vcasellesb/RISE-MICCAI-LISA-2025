@@ -13,13 +13,13 @@ class RobustCrossEntropyLoss(nn.CrossEntropyLoss):
             assert target.shape[1] == 1
             target = target[:, 0]
         return super().forward(input, target.long())
-    
+
 class TopKLoss(RobustCrossEntropyLoss):
     """
     input must be logits, not probabilities!
     """
     def __init__(
-            self, 
+            self,
             weight = None,
             ignore_index: int = -100,
             k: float = 10,

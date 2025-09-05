@@ -57,7 +57,7 @@ class MedNeXTEncoder(nn.Module):
                 stem_ops.append(norm_op(**this_norm_op_kwargs))
             if nonlin is not None:
                 stem_ops.append(nonlin(**nonlin_kwargs or {}))
-            
+
             self.stem = nn.Sequential(*stem_ops)
             input_channels = features_per_stage[0]
             self._stem_output_channels = input_channels
@@ -109,7 +109,7 @@ class MedNeXTEncoder(nn.Module):
         if not self.return_skips:
             return ret[-1]
         return ret
-    
+
     def _compute_stem_feature_map_size(self, input_size):
         size_after_stride = [i // s for i, s in zip(input_size, self._stem_stride)]
         output = np.prod([self._stem_output_channels, *size_after_stride])

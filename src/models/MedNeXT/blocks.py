@@ -105,7 +105,7 @@ class MedNeXtBlock(nn.Module):
         # if the number of channels or downsampling has ocurred, a projection is required for residual connection
         if residual and (in_channels != out_channels or any(i != 1 for i in initial_stride)):
             skip_ops = []
-            
+
             skip_ops.append(nn.Conv3d(in_channels, out_channels, kernel_size=1, stride=initial_stride, bias=False)) # bias=False to reproduce Resenc blocks
             if norm_op is not None:
                 skip_ops.append(norm_op(**norm_op_kwargs2))
@@ -114,11 +114,11 @@ class MedNeXtBlock(nn.Module):
 
         else:
             self.skip = nn.Identity()
- 
+
     def forward(self, x):
- 
+
         residual = self.skip(x)
-        
+
         x = self.conv1(x)
         x = self.nonlin(self.conv2(self.norm(x)))
 
@@ -145,7 +145,7 @@ class MedNeXtBlock(nn.Module):
         # conv2
         output_size_conv2 = np.prod([self.expansion_ratio * self.hidden_dim, *size_after_stride], dtype=np.int64)
         # conv3
-        output_size_conv3 = np.prod([self.output_channels, *size_after_stride], dtype=np.int64) 
+        output_size_conv3 = np.prod([self.output_channels, *size_after_stride], dtype=np.int64)
         # skip conv (if applicable)
         if (self.input_channels != self.output_channels) or any([i != j for i, j in zip(input_size, size_after_stride)]):
             assert isinstance(self.skip, nn.Sequential)
@@ -197,8 +197,8 @@ class StackedMedNeXTBlocks(nn.Module):
             MedNeXtBlock(
                 conv_op, input_channels, output_channels[0],
                 initial_stride=initial_stride, initial_kernel_size=first_conv_kernel_size, r=r[0], norm_op=norm_op,
-                norm_op_kwargs=norm_op_kwargs, nonlin=nonlin, nonlin_kwargs=nonlin_kwargs, 
-                residual=residual, hidden_dim=hidden_dim, 
+                norm_op_kwargs=norm_op_kwargs, nonlin=nonlin, nonlin_kwargs=nonlin_kwargs,
+                residual=residual, hidden_dim=hidden_dim,
                 perform_second_nonlin=perform_second_nonlin, conv_bias=conv_bias
             ),
             *[
@@ -217,7 +217,7 @@ class StackedMedNeXTBlocks(nn.Module):
 
     def forward(self, x):
         return self.convs(x)
-   
+
     def compute_conv_feature_map_size(self, input_size):
         assert len(input_size) == len(self.initial_stride), "just give the image size without color/feature channels or " \
                                                             "batch channel. Do not give input_size=(b, c, x, y(, z)). " \
@@ -232,14 +232,14 @@ class StackedMedNeXTBlocks(nn.Module):
 class MedNeXtDownBlock(MedNeXtBlock):
 
     def __init__(
-            self, 
+            self,
             conv_op,
             in_channels: int,
-            out_channels: int, 
-            exp_r: int = 4, 
-            kernel_size: int = 7, 
-            do_res: bool = False, 
-            norm_type: str = 'group', 
+            out_channels: int,
+            exp_r: int = 4,
+            kernel_size: int = 7,
+            do_res: bool = False,
+            norm_type: str = 'group',
             grn: bool = False
     ):
 
@@ -265,9 +265,9 @@ class MedNeXtDownBlock(MedNeXtBlock):
         )
 
     def forward(self, x, dummy_tensor=None):
-        
+
         x1 = super().forward(x)
-        
+
         if self.resample_do_res:
             res = self.res_conv(x)
             x1 = x1 + res
@@ -288,7 +288,7 @@ class MedNeXtUpBlock(MedNeXtBlock):
             norm_type: str = 'group',
             grn: bool = False
     ):
-        
+
         super().__init__(conv_op, in_channels, out_channels, exp_r, kernel_size,
                          do_res=do_res, norm_type = norm_type, grn=grn)
 
@@ -338,30 +338,30 @@ class OutBlock(nn.Module):
         return self.conv_out(x)
 
 class LayerNorm(nn.Module):
-    """LayerNorm that supports two data formats: channels_last (default) or channels_first. 
-    The ordering of the dimensions in the inputs. channels_last corresponds to inputs with 
-    shape (batch_size, height, width, channels) while channels_first corresponds to inputs 
+    """LayerNorm that supports two data formats: channels_last (default) or channels_first.
+    The ordering of the dimensions in the inputs. channels_last corresponds to inputs with
+    shape (batch_size, height, width, channels) while channels_first corresponds to inputs
     with shape (batch_size, channels, height, width).
     """
     def __init__(
-            self, 
-            normalized_shape, 
-            eps = 1e-5, 
+            self,
+            normalized_shape,
+            eps = 1e-5,
             data_format = "channels_last"
     ):
-        
+
         super().__init__()
-        
+
         self.weight = nn.Parameter(torch.ones(normalized_shape))        # beta
         self.bias = nn.Parameter(torch.zeros(normalized_shape))         # gamma
         self.eps = eps
-        
+
         if data_format not in ["channels_last", "channels_first"]:
             raise ValueError('Invalid input data format: %s.' % data_format)
         self.data_format = data_format
-        
+
         self.normalized_shape = (normalized_shape, )
-    
+
     def forward(self, x, dummy_tensor=False):
         if self.data_format == "channels_last":
             return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
@@ -409,7 +409,7 @@ if __name__ == "__main__":
     #     x = torch.randn((2, 12, 64, 64, 64)).to('mps')
     #     print(network(x).shape)
 
-    
+
     data = torch.randn((2, 1, 128, 128, 128))
     block = MedNeXtBlock(nn.Conv3d, 1, 32, 1, 3, 4, nn.GroupNorm, None, None, None, nn.GELU, {}, True, hidden_dim=32, perform_second_nonlin=False, conv_bias=True)
     assert block(data).shape == (2, 32, 128, 128, 128)

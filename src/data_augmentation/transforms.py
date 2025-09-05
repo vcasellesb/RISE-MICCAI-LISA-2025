@@ -38,7 +38,7 @@ def get_training_transforms(
     else:
         patch_size_spatial = patch_size
         ignore_axes = None
-    
+
     transforms.append(
         SpatialTransform(
             patch_size_spatial, patch_center_dist_from_border=0, random_crop=False, p_elastic_deform=0,

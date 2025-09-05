@@ -16,7 +16,7 @@ def perform_bm3d_slice_wise(data: np.ndarray, sigma_psd, profile) -> np.ndarray:
     out = np.zeros_like(data)
     for z in range(z_dim):
         print('Working on slice %i of %i' % (z, z_dim))
-        out[..., z] = bm3d(data[..., z], sigma_psd=sigma_psd, profile=profile)    
+        out[..., z] = bm3d(data[..., z], sigma_psd=sigma_psd, profile=profile)
     return out
 
 for profile in profiles:

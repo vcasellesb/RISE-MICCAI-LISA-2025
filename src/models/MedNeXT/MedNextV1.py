@@ -4,18 +4,18 @@ import torch.utils.checkpoint as checkpoint
 
 from src._typing import ToIterableInt
 from src.models.MedNeXT.blocks import (
-    MedNeXtBlock, 
-    MedNeXtDownBlock, 
-    MedNeXtUpBlock, 
+    MedNeXtBlock,
+    MedNeXtDownBlock,
+    MedNeXtUpBlock,
     OutBlock
 )
 
 class MedNeXt(nn.Module):
 
-    def __init__(self, 
-        in_channels: int, 
+    def __init__(self,
+        in_channels: int,
         n_channels: int,
-        n_classes: int, 
+        n_classes: int,
         exp_r: int = 4,                            # Expansion ratio as in Swin Transformers
         kernel_size: int = 7,                      # Ofcourse can test kernel_size
         enc_kernel_size: int = None,
@@ -24,7 +24,7 @@ class MedNeXt(nn.Module):
         do_res: bool = False,                       # Can be used to individually test residual connection
         do_res_up_down: bool = False,             # Additional 'res' connection on up and down convs
         checkpoint_style: bool = None,            # Either inside block or outside block
-        block_counts: list = [2,2,2,2,2,2,2,2,2], # Can be used to test staging ratio: 
+        block_counts: list = [2,2,2,2,2,2,2,2,2], # Can be used to test staging ratio:
                                             # [3,3,9,3] in Swin as opposed to [2,2,2,2,2] in nnUNet
         norm_type = 'group',
         grn = False
@@ -38,15 +38,15 @@ class MedNeXt(nn.Module):
         self.outside_block_checkpointing = False
         if checkpoint_style == 'outside_block':
             self.outside_block_checkpointing = True
-        
+
         if kernel_size is not None:
             enc_kernel_size = kernel_size
             dec_kernel_size = kernel_size
-            
+
         self.stem = nn.Conv3d(in_channels, n_channels, kernel_size=1)
         if isinstance(exp_r, int):
             exp_r = [exp_r for i in range(len(block_counts))]
-        
+
         self.enc_block_0 = nn.Sequential(*[
             MedNeXtBlock(
                 nn.Conv3d,
@@ -59,7 +59,7 @@ class MedNeXt(nn.Module):
                 grn=grn
                 )
             for i in range(block_counts[0])]
-        ) 
+        )
 
         self.down_0 = MedNeXtDownBlock(
             nn.Conv3d,
@@ -70,7 +70,7 @@ class MedNeXt(nn.Module):
             do_res=do_res_up_down,
             norm_type=norm_type
         )
-    
+
         self.enc_block_1 = nn.Sequential(*[
             MedNeXtBlock(
                 nn.Conv3d,
@@ -120,7 +120,7 @@ class MedNeXt(nn.Module):
             norm_type=norm_type,
             grn=grn
         )
-        
+
         self.enc_block_3 = nn.Sequential(*[
             MedNeXtBlock(
                 nn.Conv3d,
@@ -134,7 +134,7 @@ class MedNeXt(nn.Module):
                 )
             for i in range(block_counts[3])]
         )
-        
+
         self.down_3 = MedNeXtDownBlock(
             nn.Conv3d,
             in_channels=8*n_channels,
@@ -263,7 +263,7 @@ class MedNeXt(nn.Module):
         self.out_0 = OutBlock(nn.ConvTranspose3d, in_channels=n_channels, n_classes=n_classes)
 
         # Used to fix PyTorch checkpointing bug
-        self.dummy_tensor = nn.Parameter(torch.tensor([1.]), requires_grad=True)  
+        self.dummy_tensor = nn.Parameter(torch.tensor([1.]), requires_grad=True)
 
         if deep_supervision:
             self.out_1 = OutBlock(nn.ConvTranspose3d, in_channels=n_channels*2, n_classes=n_classes)
@@ -287,7 +287,7 @@ class MedNeXt(nn.Module):
 
 
     def forward(self, x):
-        
+
         x = self.stem(x)
         if self.outside_block_checkpointing:
             x_res_0 = self.iterative_checkpoint(self.enc_block_0, x)
@@ -304,28 +304,28 @@ class MedNeXt(nn.Module):
                 x_ds_4 = checkpoint.checkpoint(self.out_4, x, self.dummy_tensor)
 
             x_up_3 = checkpoint.checkpoint(self.up_3, x, self.dummy_tensor)
-            dec_x = x_res_3 + x_up_3 
+            dec_x = x_res_3 + x_up_3
             x = self.iterative_checkpoint(self.dec_block_3, dec_x)
             if self.do_ds:
                 x_ds_3 = checkpoint.checkpoint(self.out_3, x, self.dummy_tensor)
             del x_res_3, x_up_3
 
             x_up_2 = checkpoint.checkpoint(self.up_2, x, self.dummy_tensor)
-            dec_x = x_res_2 + x_up_2 
+            dec_x = x_res_2 + x_up_2
             x = self.iterative_checkpoint(self.dec_block_2, dec_x)
             if self.do_ds:
                 x_ds_2 = checkpoint.checkpoint(self.out_2, x, self.dummy_tensor)
             del x_res_2, x_up_2
 
             x_up_1 = checkpoint.checkpoint(self.up_1, x, self.dummy_tensor)
-            dec_x = x_res_1 + x_up_1 
+            dec_x = x_res_1 + x_up_1
             x = self.iterative_checkpoint(self.dec_block_1, dec_x)
             if self.do_ds:
                 x_ds_1 = checkpoint.checkpoint(self.out_1, x, self.dummy_tensor)
             del x_res_1, x_up_1
 
             x_up_0 = checkpoint.checkpoint(self.up_0, x, self.dummy_tensor)
-            dec_x = x_res_0 + x_up_0 
+            dec_x = x_res_0 + x_up_0
             x = self.iterative_checkpoint(self.dec_block_0, dec_x)
             del x_res_0, x_up_0, dec_x
 
@@ -346,7 +346,7 @@ class MedNeXt(nn.Module):
                 x_ds_4 = self.out_4(x)
 
             x_up_3 = self.up_3(x)
-            dec_x = x_res_3 + x_up_3 
+            dec_x = x_res_3 + x_up_3
             x = self.dec_block_3(dec_x)
 
             if self.do_ds:
@@ -354,21 +354,21 @@ class MedNeXt(nn.Module):
             del x_res_3, x_up_3
 
             x_up_2 = self.up_2(x)
-            dec_x = x_res_2 + x_up_2 
+            dec_x = x_res_2 + x_up_2
             x = self.dec_block_2(dec_x)
             if self.do_ds:
                 x_ds_2 = self.out_2(x)
             del x_res_2, x_up_2
 
             x_up_1 = self.up_1(x)
-            dec_x = x_res_1 + x_up_1 
+            dec_x = x_res_1 + x_up_1
             x = self.dec_block_1(dec_x)
             if self.do_ds:
                 x_ds_1 = self.out_1(x)
             del x_res_1, x_up_1
 
             x_up_0 = self.up_0(x)
-            dec_x = x_res_0 + x_up_0 
+            dec_x = x_res_0 + x_up_0
             x = self.dec_block_0(dec_x)
             del x_res_0, x_up_0, dec_x
 
@@ -376,14 +376,14 @@ class MedNeXt(nn.Module):
 
         if self.do_ds:
             return [x, x_ds_1, x_ds_2, x_ds_3, x_ds_4]
-        else: 
+        else:
             return x
 
 
 if __name__ == "__main__":
 
     network = MedNeXt(
-            in_channels = 1, 
+            in_channels = 1,
             n_channels = 32,
             n_classes = 13,
             exp_r=[2,3,4,4,4,4,4,3,2],         # Expansion ratio as in Swin Transformers
@@ -396,19 +396,19 @@ if __name__ == "__main__":
             block_counts = [3,4,8,8,8,8,8,4,3],
             checkpoint_style = None,
             grn = True
-            
+
         ).to('mps')
-    
+
     # network = MedNeXt_RegularUpDown(
-    #         in_channels = 1, 
+    #         in_channels = 1,
     #         n_channels = 32,
-    #         n_classes = 13, 
+    #         n_classes = 13,
     #         exp_r=[2,3,4,4,4,4,4,3,2],         # Expansion ratio as in Swin Transformers
     #         kernel_size=3,                     # Can test kernel_size
     #         deep_supervision=True,             # Can be used to test deep supervision
     #         do_res=True,                      # Can be used to individually test residual connection
     #         block_counts = [2,2,2,2,2,2,2,2,2],
-    #         
+    #
     #     ).cuda()
 
     def count_parameters(model):
@@ -423,7 +423,7 @@ if __name__ == "__main__":
     x = torch.zeros((1,1,64,64,64), requires_grad=False).to('mps')
     # flops = FlopCountAnalysis(network, x)
     # print(flops.total())
-    
+
     with torch.no_grad():
         print(network)
         x = torch.zeros((1, 1, 128, 128, 128))

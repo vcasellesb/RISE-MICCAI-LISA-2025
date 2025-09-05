@@ -37,7 +37,7 @@ class TrainingProgressTracker:
             new_ema_pseudo_dice = self.progress['ema_fg_dice'][epoch - 1] * 0.9 + 0.1 * value \
                 if len(self.progress['ema_fg_dice']) > 0 else value
             self.log('ema_fg_dice', new_ema_pseudo_dice, epoch)
-    
+
     def plot_progress_png(self, output_folder):
         # we infer the epoch form our internal logging
         epoch = min([len(i) for i in self.progress.values()]) - 1  # lists of epoch 0 have len 1

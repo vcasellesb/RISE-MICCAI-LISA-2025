@@ -7,7 +7,7 @@ from torch import nn
 class SoftDiceLoss(nn.Module):
 
     def __init__(
-        self, 
+        self,
         apply_nonlin: Callable = None,
         batch_dice: bool = False,
         do_bg: bool = True,
@@ -78,7 +78,7 @@ class MemoryEfficientSoftDiceLoss(nn.Module):
         self.batch_dice = batch_dice
         self.nonlin = nonlin
         self.smooth = smooth
-        
+
     def forward(self, x, y, loss_mask=None):
         if self.nonlin is not None:
             x = self.nonlin(x)

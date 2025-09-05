@@ -18,7 +18,7 @@ def compute_tp_fp_fn_tn(
     # have been predicted as such
     tp = np.sum(gt & pred)
 
-    # false positives: 
+    # false positives:
     # voxels that are not lesion (positive)
     # BUT have been predicted as such
     fp = np.sum(~gt & pred)

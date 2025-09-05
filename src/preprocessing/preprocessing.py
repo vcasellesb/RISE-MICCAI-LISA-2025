@@ -142,7 +142,7 @@ def get_normalizers() -> ty.Iterable[ty.Callable[[np.ndarray], np.ndarray]]:
     ]
 
 
-def get_resamplers() -> tuple[ty.Callable[[np.ndarray, tuple, tuple, tuple], np.ndarray], 
+def get_resamplers() -> tuple[ty.Callable[[np.ndarray, tuple, tuple, tuple], np.ndarray],
                               ty.Callable[[np.ndarray, tuple, tuple, tuple], np.ndarray]]:
     shared_kwargs = {'order_z': 0, 'force_separate_z': None}
     resampling_data = partial(resample_data_or_seg_to_shape, is_seg=False, order=3, **shared_kwargs)
@@ -254,7 +254,7 @@ def preprocess_entrypoint() -> None:
                              'after preprocessing has been run. This is here because I have '
                              'a humongous dataset. You probably don\'t... There\'s classes to this shit here.')
 
-    parser.add_argument('--quiet', '-q', action='store_false', 
+    parser.add_argument('--quiet', '-q', action='store_false',
                         dest='verbose')
 
     args = parser.parse_args()
@@ -281,5 +281,5 @@ if __name__ == "__main__":
     # data, seg, properties = preprocess(data_iterable, dataset_fingerprint='test-out/dataset_fingerprint.json')
     # for c in range(data.shape[0]):
     #     rw.write_image(data[c], output_fname=f'test_{c}.nii.gz', properties=properties)
-    
+
     # rw.write_seg(seg[0], 'test_seg.nii.gz', properties)

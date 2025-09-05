@@ -189,7 +189,7 @@ class Predictor:
 
         prediction = self.predict_sliding_window_return_logits(data).to('cpu')
 
-        if self.verbose: 
+        if self.verbose:
             print('Prediction done')
         torch.set_num_threads(n_threads)
 
@@ -203,7 +203,7 @@ class Predictor:
         patch_size = self.training_config.patch_size
         steps = compute_steps_for_sliding_window(image_size, patch_size, self.tile_step_size)
 
-        if self.verbose: 
+        if self.verbose:
             print(
                 f'n_steps {np.prod([len(i) for i in steps])}, image size is {image_size}, tile_size {patch_size}, '
                 f'tile_step_size {self.tile_step_size}\nsteps:\n{steps}'
@@ -215,7 +215,7 @@ class Predictor:
                     slicers.append(
                         tuple(
                             [
-                                slice(None), 
+                                slice(None),
                                 *[slice(si, si + ti) for si, ti in zip((sx, sy, sz), patch_size)]
                             ]
                         )

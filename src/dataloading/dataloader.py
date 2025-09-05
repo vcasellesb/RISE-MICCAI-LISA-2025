@@ -150,7 +150,7 @@ class _DataLoader(SlimDataLoaderBase):
 
 class DataLoader(_DataLoader):
     _data: Dataset
-    
+
     def __init__(self,
                  data: Dataset,
                  batch_size: int,
@@ -250,8 +250,8 @@ class DataLoader(_DataLoader):
                 assert overwrite_class in class_locations.keys(), 'desired class ("overwrite_class") does not ' \
                                                                     'have class_locations (missing key)'
             # this saves us a np.unique. Preprocessing already did that for all cases. Neat.
-            # class_locations keys can also be tuple. 
-            # Remember, class locations only has foreground classes! This removes any background that might be in 
+            # class_locations keys can also be tuple.
+            # Remember, class locations only has foreground classes! This removes any background that might be in
             # self.all_labels
             eligible_classes_or_regions = [i for i in class_locations.keys() if len(class_locations[i]) > 0]
 

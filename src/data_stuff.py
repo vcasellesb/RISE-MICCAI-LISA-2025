@@ -5,7 +5,7 @@ from src.utils import abspath
 
 TRAINING_PATH_RAW = abspath('training_data/raw')
 
-# I set both training and val data to be the same since 
+# I set both training and val data to be the same since
 # I want to use all data for training
 TRAINING_PATH = abspath('training_data/preprocessed')
 VALIDATION_PATH = abspath('training_data/preprocessed')
