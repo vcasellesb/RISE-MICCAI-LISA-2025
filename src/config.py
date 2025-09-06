@@ -1,5 +1,3 @@
-from src.utils import abspath
-
 from src.configs import get_default_training_config, ArchKwargs
 from src.experiment_planning import plan_experiment
 from src.preprocessing.preprocessing import get_preprocessing_config_from_dataset_fingerprint

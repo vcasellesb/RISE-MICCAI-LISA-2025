@@ -11,9 +11,10 @@ from src.dataloading.dataset import Dataset, generate_iterable_with_filenames
 
 from src.data_stuff import LABELS
 
+from src.configs.preprocessing import get_preprocessing_config_from_dataset_fingerprint
+
 from .normalization import zscore_norm
 from .cropping import crop_to_nonzero
-from src.configs.preprocessing import get_preprocessing_config_from_dataset_fingerprint
 from .resampling import (
     compute_new_shape,
     resample_data_or_seg_to_shape
