@@ -1,5 +1,6 @@
 import multiprocessing
 import numpy as np
+from collections import defaultdict
 
 from src.utils import save_json
 from src.io import rw
@@ -46,7 +47,7 @@ def compute_metrics(gt_file: str, prediction_file: str, labels: list[int]) -> di
     results['gt_file'] = gt_file
     results['prediction_file'] = prediction_file
 
-    results['metrics'] = {}
+    results['metrics'] = defaultdict(dict)
 
     for label in labels:
         this_gt = gt == label

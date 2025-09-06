@@ -19,11 +19,11 @@ class TopKLoss(RobustCrossEntropyLoss):
     input must be logits, not probabilities!
     """
     def __init__(
-            self,
-            weight = None,
-            ignore_index: int = -100,
-            k: float = 10,
-            label_smoothing: float = 0
+        self,
+        weight = None,
+        ignore_index: int = -100,
+        k: float = 10,
+        label_smoothing: float = 0
     ):
         self.k = k
         super(TopKLoss, self).__init__(weight, False, ignore_index, reduce=False, label_smoothing=label_smoothing)
