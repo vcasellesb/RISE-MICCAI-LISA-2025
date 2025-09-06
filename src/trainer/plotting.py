@@ -51,7 +51,7 @@ def select_slice_to_plot2(image: np.ndarray, segmentation: np.ndarray) -> int:
         fg_per_slice[:, i] = fg_mask.sum((1, 2))
 
         # I don't understand this... You divide by the total sum?
-        # I change it. Before: 
+        # I change it. Before:
         # fg_per_slice[:, i] /= fg_per_slice.sum()
         # Now: -- guaranteed to give 1 along each class!
         fg_per_slice[:, i] /= fg_per_slice[:, i].sum(0)
