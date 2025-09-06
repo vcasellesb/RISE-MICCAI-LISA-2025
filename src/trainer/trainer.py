@@ -277,7 +277,9 @@ class Trainer:
         predicted_segmentation_onehot = torch.zeros(output.shape, device=output.device, dtype=torch.float32)
         predicted_segmentation_onehot.scatter_(1, output_seg, 1)
         if plot_batch:
-            plot_batched_segmentations(data, output_seg, batch['keys'], join(self.output_folder, 'epoch_%i' % self.current_epoch))
+            plot_batched_segmentations(data, output_seg, batch['keys'],
+                                       join(self.output_folder, 'epoch_%i' % self.current_epoch))
+
         del output_seg, data
 
         mask = None
