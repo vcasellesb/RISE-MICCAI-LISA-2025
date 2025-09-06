@@ -7,3 +7,4 @@ test*/
 resunet_results*
 *trained_models/
 LISA_dockerized_inference*/
+synapse_token*
