@@ -8,3 +8,6 @@ resunet_results*
 *trained_models/
 LISA_dockerized_inference*/
 synapse_token*
+validation-data-lisa
+training_data/
+output/

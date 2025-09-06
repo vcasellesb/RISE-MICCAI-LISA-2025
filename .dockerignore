@@ -16,12 +16,13 @@ training_data/
 Dockerfile*
 
 license.txt
-synapse_token
+synapse_token*
 *.sh
 
 _trained_models
 LISA_dockerized_inference*/
 resunet_results*/
+validation-data-lisa
 
 
 .dockerignore
