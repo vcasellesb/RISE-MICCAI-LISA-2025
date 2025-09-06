@@ -86,6 +86,37 @@ def process_lowfield_image(
     save_nifti(gt.astype(np.uint8), gt_out, im.affine)
 
 
+def process_lowfield_image_correctly(
+    image: str,
+    gt: np.ndarray,
+    lowfield_out: str,
+    sr_out: str,
+    gt_out: str
+) -> None:
+    """Recommended from SynthSRs last author"""
+
+    im: nib.Nifti1Image = nib.load(image)
+    data = im.get_fdata()
+    denoised_data = denoise_w_chambolle(data, weight=None)
+    save_nifti(denoised_data, lowfield_out, im.affine)
+
+    run_synthsr_on_lowfield_scan(lowfield_out, sr_out, nthreads=4)
+
+    brain_seg = segment_brain(image).transpose([2, 1, 0])
+
+    sr_im = nib.load(sr_out)
+    data_sr = sr_im.get_fdata()
+
+    cropped_data, _, slicer, _ = crop_with_seg(denoised_data, brain_seg)
+    cropped_sr_data, *_ = crop_with_seg(data_sr, brain_seg)
+
+    save_nifti(cropped_data, lowfield_out, im.affine)
+    save_nifti(cropped_sr_data, sr_out, im.affine)
+
+    gt = gt[slicer]
+    save_nifti(gt.astype(np.uint8), gt_out, im.affine)
+
+
 def prepare_output_filenames(identifier, output_folder):
     joiner = lambda x: join(output_folder, x % identifier)
     _t = map(
