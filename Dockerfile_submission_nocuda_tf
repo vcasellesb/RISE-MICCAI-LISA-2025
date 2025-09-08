@@ -5,10 +5,12 @@
 # Always pin the version (e.g., python:3.10-slim) to ensure reproducibility.
 FROM python:3.10-slim
 
-# # Set the working directory for the COPY, RUN, and ENTRYPOINT commands.
+# Set the working directory for the COPY, RUN, and ENTRYPOINT commands.
 WORKDIR /vcasellesb-LISA
 
-COPY . .
+COPY SynthSR SynthSR
+COPY HD-BET HD-BET
+COPY trained_models trained_models
 
 # Install essential build tools such as gcc/g++ that may be needed to compile certain Python packages.
 RUN apt-get update && \
@@ -24,5 +26,7 @@ RUN apt-get update && \
     pip install --no-cache-dir -e ./HD-BET && \
     rm -rf /var/lib/apt/lists/*
 
-# # Set the main command to run your model script when the container starts.
+COPY src src
+
+# Set the main command to run your model script when the container starts.
 ENTRYPOINT ["python", "-m", "src.run_dockerized", "-npp_hdbet", "6", "-npe_hdbet", "6", "--nthreads_synthsr", "4"]
