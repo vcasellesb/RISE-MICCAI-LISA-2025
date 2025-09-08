@@ -13,7 +13,7 @@ REGEX_IDENTIFIER = r'LISA_.*?_(\d{4})_CISO.nii.gz'
 def construct_output_filenames(input_files: list[str], output_folder: str) -> list[str]:
     pat = re.compile(REGEX_IDENTIFIER, re.I)
     identifiers = map(lambda x: x.groups()[-1], filter(None, map(pat.search, input_files)))
-    return list(map(lambda x: join(output_folder, 'LISA_HF_%s_seg_prediction.nii.gz' % x), identifiers))
+    return list(map(lambda x: join(output_folder, 'LISA_TESTING_SEG_%s' % x), identifiers))
 
 def main(input_folder: str, output_folder: str,
          models_path: str | None,

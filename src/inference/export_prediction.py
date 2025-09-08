@@ -206,14 +206,20 @@ def export_prediction_from_logits(
         return ret
 
 
-    output_file_truncated = outfile[:outfile.index(file_ending)]
     if save_probabilities:
         segmentation_final, probabilities_final = ret
-        np.savez_compressed(output_file_truncated + '.npz', probabilities=probabilities_final)
-        write_pickle(properties, output_file_truncated + '.pkl')
+        np.savez_compressed(outfile + '.npz', probabilities=probabilities_final)
+        write_pickle(properties, outfile + '.pkl')
         del probabilities_final, ret
     else:
         segmentation_final = ret
         del ret
 
-    rw.write_seg(segmentation_final, outfile, properties)
+    hipp_seg = segmentation_final.copy()
+    hipp_seg[hipp_seg > 2] = 0
+    rw.write_seg(hipp_seg, outfile + '_hipp' + file_ending, properties)
+    del hipp_seg
+
+    baga_seg = segmentation_final.copy()
+    baga_seg[baga_seg < 5] = 0
+    rw.write_seg(baga_seg, outfile + '_baga' + file_ending, properties)
