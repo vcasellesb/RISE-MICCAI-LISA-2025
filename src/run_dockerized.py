@@ -15,7 +15,9 @@ def construct_output_filenames(input_files: list[str], output_folder: str) -> li
     identifiers = map(lambda x: x.groups()[-1], filter(None, map(pat.search, input_files)))
     return list(map(lambda x: join(output_folder, 'LISA_TESTING_SEG_%s' % x), identifiers))
 
-def main(input_folder: str, output_folder: str,
+def main(input_folder: str,
+         sequential: bool,
+         output_folder: str,
          models_path: str | None,
          num_processes_preprocesing: int,
          num_processes_export: int,
@@ -29,7 +31,9 @@ def main(input_folder: str, output_folder: str,
     input_files = glob(join(input_folder, '*.nii.gz'))
     output_files = construct_output_filenames(input_files, output_folder)
     maybe_mkdir(output_folder)
-    predict_from_files(input_files, output_files,
+    predict_from_files(input_files,
+                       sequential,
+                       output_files,
                        models_path=models_path,
                        num_processes_prep=num_processes_preprocesing,
                        num_processes_export=num_processes_export,
@@ -43,6 +47,7 @@ def main(input_folder: str, output_folder: str,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_folder', '-i', type=str, default='/input')
+    parser.add_argument('--sequential', action='store_true')
     parser.add_argument('--output_folder', '-o', type=str, default='/output')
     parser.add_argument('--model_path', '-mp', type=str)
 
@@ -63,7 +68,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.input_folder, args.output_folder, args.model_path, args.num_processes_preprocesing, args.num_processes_export,
+    main(args.input_folder, args.sequential,
+         args.output_folder, args.model_path, args.num_processes_preprocesing, args.num_processes_export,
          nthreads_synthsr=args.nthreads_synthsr,
          npp_hdbet=args.npp_hdbet,
          npe_hdbet=args.npe_hdbet,

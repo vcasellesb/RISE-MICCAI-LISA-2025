@@ -14,6 +14,7 @@ import numpy as np
 from src.utils import get_default_device
 from src.trainer.utils import empty_cache, dummy_context
 from src.preprocessing.preprocessing import get_normalizers, get_resamplers
+from src.preprocessing.preprocessing_inference import preprocess_case
 
 from .utils import (
     pad_nd_image,
@@ -136,6 +137,20 @@ class Predictor:
         network.eval()
         network.decoder.deep_supervision = False
         return network, training_config, arch_kwargs, allowed_mirror_axes
+
+
+    def _get_preprocessing_kwargs(self) -> dict:
+        normalizers_per_channel = get_normalizers()
+        resampler_data, resampler_seg = get_resamplers()
+        preprocessing_kwargs = {
+            'target_spacing': self.preprocessing_config.target_spacing,
+            'transpose_forward': self.preprocessing_config.transpose_forward,
+            'normalizers_per_channel': normalizers_per_channel,
+            'resampling_data_function': resampler_data,
+            # 'resampling_seg_function': resampler_seg,
+            'verbose': self.verbose_pp
+        }
+        return preprocessing_kwargs
 
 
     @torch.inference_mode()
@@ -380,7 +395,6 @@ class Predictor:
         list_of_files: list[str],
         outfiles: list[str] |  None,
         brain_seg_paths: list[str],
-        verbose: bool,
         num_processes_prep: int,
         tmpdir: str,
         num_processes_export: int,
@@ -388,20 +402,35 @@ class Predictor:
         save_probabilities: bool = False
     ):
 
-        normalizers_per_channel = get_normalizers()
-        resampler_data, resampler_seg = get_resamplers()
-        preprocessing_kwargs = {
-            'target_spacing': self.preprocessing_config.target_spacing,
-            'transpose_forward': self.preprocessing_config.transpose_forward,
-            'normalizers_per_channel': normalizers_per_channel,
-            'resampling_data_function': resampler_data,
-            # 'resampling_seg_function': resampler_seg,
-            'verbose': verbose
-        }
-
+        preprocessing_kwargs = self._get_preprocessing_kwargs()
         data_iterator = preprocessing_iterator_from_list(list_of_files, outfiles, brain_seg_paths,
                                                          preprocessing_kwargs, synthsr_kwargs,
                                                          num_processes_prep, tmpdir,
                                                          pin_memory=self.device == "cuda")
 
         return self.predict_from_data_iterator(data_iterator, num_processes_export, save_probabilities=save_probabilities)
+
+
+    def predict_from_list_of_files_sequential(
+        self,
+        list_of_files: list[str],
+        outfiles: list[str] | None,
+        brain_seg_paths: list[str],
+        tmpdir: str,
+        synthsr_kwargs: dict,
+        save_probabilities: bool = False
+    ):
+        preprocessing_kwargs = self._get_preprocessing_kwargs()
+        for input_scan, ofile, brain_seg in zip(list_of_files, outfiles, brain_seg_paths):
+
+            data, data_properties = preprocess_case(input_scan, preprocessing_kwargs,
+                                                    synthsr_kwargs, tmpdir, brain_seg)
+
+            data = torch.from_numpy(data).to(dtype=torch.float32, memory_format=torch.contiguous_format)
+
+            prediction = self.predict_logits_from_preprocessed_data(data).cpu()
+            export_prediction_from_logits(prediction, data_properties, self.preprocessing_config, save_probabilities, ofile)
+
+        compute_gaussian.cache_clear()
+        empty_cache(self.device)
+        return

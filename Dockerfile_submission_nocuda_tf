@@ -29,4 +29,4 @@ RUN apt-get update && \
 COPY src src
 
 # Set the main command to run your model script when the container starts.
-ENTRYPOINT ["python", "-m", "src.run_dockerized", "-npp_hdbet", "6", "-npe_hdbet", "6", "--nthreads_synthsr", "4"]
+ENTRYPOINT ["python", "-m", "src.run_dockerized", "-npp_hdbet", "1", "-npe_hdbet", "1", "--nthreads_synthsr", "1", "--num_processes_preprocesing", "1", "--num_processes_export", "1", "--tile_step_size_hdbet", "0.5", "--sequential"]
