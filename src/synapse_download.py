@@ -32,12 +32,10 @@ def main(output_folder: str, synID: str, token_file: str):
 def entrypoint():
     parser = argparse.ArgumentParser()
     parser.add_argument('output_folder', type=str)
-    parser.add_argument('-synid', '--synapse_id', type=str, default='syn68737427')
+    parser.add_argument('-synid', '--synapse_id', type=str, choices=_ACCEPTED_SYN_IDS, default='syn68737427')
     parser.add_argument('--token_file', type=str, default=TOKEN_FILE)
 
     args = parser.parse_args()
-    if args.synapse_id not in _ACCEPTED_SYN_IDS:
-        raise ValueError(f'Non-supported synapse id code provided. Please provide one of:\n{_ACCEPTED_SYN_IDS}')
 
     main(args.output_folder, args.synapse_id, args.token_file)
 

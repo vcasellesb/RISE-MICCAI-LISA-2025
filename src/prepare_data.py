@@ -1,18 +1,20 @@
 import numpy as np
 import nibabel as nib
 
-
-from .utils import join, maybe_mkdir, exists, save_nifti
-
+from .utils import (
+    join,
+    maybe_mkdir,
+    exists,
+    save_nifti,
+    basename,
+    dirname
+)
 from .preprocessing.brain_segmentation import segment_brain
 from .preprocessing.cropping_ciso import crop_with_seg
 from .preprocessing.upscale_and_denoise import denoise_w_chambolle
 from .preprocessing.synthsr import run_synthsr_on_lowfield_scan
-
 from .dataloading.dataset import get_identifiers
 
-
-RAW_DATASET_PATH = 'datasets/2025Task2/'
 
 # Proposta actual:
 # 1. Hd-Bet
@@ -21,12 +23,12 @@ RAW_DATASET_PATH = 'datasets/2025Task2/'
 # 4. SynthSR
 
 
-def get_raw_case_dict(identifier: str) -> dict[str, str]:
+def get_raw_case_dict(dataset_folder: str, identifier: str) -> dict[str, str]:
     this_case = {
-        'LF': join(RAW_DATASET_PATH, 'Low Field Images', 'LISA_%s_ciso.nii.gz' % identifier),
-        'HIPP': join(RAW_DATASET_PATH, 'Subtask 2a - Hippocampus Segmentations', 'LISA_%s_HF_hipp.nii.gz' % identifier),
-        'BAGA': join(RAW_DATASET_PATH, 'Subtask 2b - Basal Ganglia Segmentations', 'LISA_%s_HF_baga.nii.gz' % identifier),
-        'VENT': join(RAW_DATASET_PATH, 'Extra Segmentations', 'Ventricle', 'LISA_%s_vent.nii.gz' % identifier)
+        'LF': join(dataset_folder, 'Low Field Images', 'LISA_%s_ciso.nii.gz' % identifier),
+        'HIPP': join(dataset_folder, 'Subtask 2a - Hippocampus Segmentations', 'LISA_%s_HF_hipp.nii.gz' % identifier),
+        'BAGA': join(dataset_folder, 'Subtask 2b - Basal Ganglia Segmentations', 'LISA_%s_HF_baga.nii.gz' % identifier),
+        'VENT': join(dataset_folder, 'Extra Segmentations', 'Ventricle', 'LISA_%s_vent.nii.gz' % identifier)
     }
     return this_case
 
@@ -134,9 +136,13 @@ def prepare_raw_training_data(
 ) -> None:
 
     maybe_mkdir(output_folder)
-    identifiers = get_identifiers(input_folder)
+
+    if basename(input_folder) == "Low Field Images":
+        input_folder = dirname(input_folder)
+
+    identifiers = get_identifiers(join(input_folder, 'Low Field Images'))
     for identifier in identifiers:
-        case_dict = get_raw_case_dict(identifier)
+        case_dict = get_raw_case_dict(input_folder, identifier)
         lowfield_out, sr_out, seg_out = prepare_output_filenames(identifier, output_folder)
         if all(map(exists, (lowfield_out, sr_out, seg_out))):
             continue
@@ -148,25 +154,24 @@ def prepare_raw_training_data(
 def entrypoint():
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument('input_folder', type=str)
     parser.add_argument('output_folder', type=str)
-    parser.add_argument('--input_folder', '-i', type=str,
-                        default=join(RAW_DATASET_PATH, 'Low Field Images'))
     args = parser.parse_args()
 
     prepare_raw_training_data(args.input_folder, args.output_folder)
 
 
-def mylilcheck():
-    identifiers = get_identifiers(join(RAW_DATASET_PATH, 'Low Field Images'))
+def mylilcheck(in_folder: str):
+    identifiers = get_identifiers(join(in_folder, 'Low Field Images'))
     i = identifiers.pop(0)
-    case_dict = get_raw_case_dict(i)
+    case_dict = get_raw_case_dict(in_folder, i)
     hipp_seg = np.asanyarray(nib.load(case_dict['HIPP']).dataobj)
     baga_seg = np.asanyarray(nib.load(case_dict['BAGA']).dataobj)
     set_hipp = set(np.unique(hipp_seg.ravel()))
     set_baga = set(np.unique(baga_seg.ravel()))
 
     for i in identifiers:
-        case_dict = get_raw_case_dict(i)
+        case_dict = get_raw_case_dict(in_folder, i)
         hipp_seg = np.asanyarray(nib.load(case_dict['HIPP']).dataobj)
         baga_seg = np.asanyarray(nib.load(case_dict['BAGA']).dataobj)
         set_hipp |= set(np.unique(hipp_seg.ravel()))
