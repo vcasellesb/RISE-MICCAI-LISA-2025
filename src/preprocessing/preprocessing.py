@@ -244,7 +244,8 @@ def preprocess_entrypoint() -> None:
                         help='Where all "identifiable" data is.')
     parser.add_argument('-d', '--dataset_fingerprint', type=str,
                         help='Path to dataset fingerprint. Required to know how preprocessing '
-                             'should be approached.')
+                             'should be approached. If not provided, fingerprint extraction '
+                             'will be performed prior to preprocessing.')
 
     parser.add_argument('-o', '--output_folder', type=str,
                         help='Self-explanatory. Fuck you.')
@@ -261,9 +262,15 @@ def preprocess_entrypoint() -> None:
     args = parser.parse_args()
 
     # handle some optional args
-    args.dataset_fingerprint = args.dataset_fingerprint or join(args.raw_data_folder, 'dataset_fingerprint.json')
     args.output_folder = args.output_folder or join(dirname(args.raw_data_folder), 'preprocessed')
     args.num_processes = args.num_processes or get_default_num_processes() // 2
+
+    if args.dataset_fingerprint is None:
+        from src.fingerprint_extraction import run_and_save
+        run_and_save(args.raw_data_folder,
+                     args.raw_data_folder,
+                     args.num_processes)
+        args.dataset_fingerprint = join(args.raw_data_folder, 'dataset_fingerprint.json')
 
     data_iterable = generate_iterable_with_filenames(args.raw_data_folder, allow_no_seg=False)
     preprocess(data_iterable,

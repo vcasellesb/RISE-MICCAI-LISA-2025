@@ -1,4 +1,3 @@
-import os
 from typing import Iterable
 import multiprocessing
 from time import sleep
