@@ -6,7 +6,7 @@ from src.utils import isfile, join, remove, dirname, listdir, rmdir
 from src.inference_entrypoint import TRAINED_MODELS
 
 
-ZENODO_DOWNLOAD_URL = 'https://zenodo.org/records/17242234/files/trained_models.zip?download=1'
+ZENODO_DOWNLOAD_URL = 'https://zenodo.org/records/17243117/files/trained_models.zip?download=1'
 
 def install_model_from_zip_file(zip_file: str, target_folder: str):
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
