@@ -37,5 +37,6 @@ if __name__ == "__main__":
     project_folder = dirname(dirname(__file__))
     maybe_download_parameters(ZENODO_DOWNLOAD_URL,
                               project_folder)
-    # Because I'm dumb and I made a mistake uploading the files...
-    recursively_remove_files_and_folders('__MACOSX')
+    # # Because I'm dumb and I made a mistake uploading the files...
+    # I fixed it now uploading a new version of the folder
+    # recursively_remove_files_and_folders('__MACOSX')
