@@ -11,3 +11,7 @@ curl -o SynthSR/models/synthsr_lowfield_v20_230130.h5 $SYNTHSR_MODEL_PATH
 # HD BET
 git clone https://github.com/vcasellesb/HD-BET.git && pip install -e HD-BET
 python3 -c "import HD_BET.checkpoint_download as chk; chk.maybe_download_parameters()"
+
+
+# Download my models from zenodo
+python3 -m src.download_models

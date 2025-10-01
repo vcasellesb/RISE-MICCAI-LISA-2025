@@ -17,6 +17,7 @@ basename = os.path.basename
 exists = os.path.exists
 isfile = os.path.isfile
 abspath = os.path.abspath
+rmdir = os.rmdir
 
 
 DEFAULT_NUM_PROCESSES = 12
