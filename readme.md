@@ -18,7 +18,7 @@ The convolutional neural network was configured using a reverse-engineered break
 * Patch size: (128, 160, 128)
 * Resolution stages: 6 (bottleneck shape: (4, 5, 4)).
 * Oversampling on 50% of batches.
-* 1000 epochs training.
+* 1000 training epochs.
 
 To see a full breakdown of the training configuration see the [`debug.json`](trained_models/LISA_trained_models_28_08_25/debug.json) file. I also trained a fully-residual UNet (w encoder and decoder both with residual connections), which I couldn't submit. However, I am providing the resulting models for transparency -- also consult the corresponding json file if you're curious about the full description of the model.
 
@@ -30,7 +30,7 @@ To reproduce the full experiment follow the next steps.
 
 The code contained in this repo requires python 3.10. I recommend installing it and the required packages in an isolated environment. To do this, you can use either conda/miniconda or another python environment manager like `venv`.
 
-After you have installed python 3.10 you can install all the required packages using the script `install_packages.sh`. This will take a while, since it installs tensorflow and torch and also downloads the model parameters used by `SynthSR` and `HD-BET`.
+After you have installed python 3.10 you can install all the required packages using the script `install_packages.sh`. This will take a while, since it not only installs both tensorflow and torch, but also downloads the model parameters used by my CNN, `SynthSR`'s and `HD-BET`'s.
 
 ### Download the synapse dataset
 
@@ -69,6 +69,22 @@ To reproduce the training configuration that produced my final results you shoul
 ```bash
 python3 -m src.train -tmem 12 -pofg 0.5 -net unet --device <your available device> -o <desired output folder>
 ```
+
+### Run the trained model on the validation dataset
+
+Once you've downloaded the LISA Challenge validation dataset, you can predict all cases using the method here described as follows:
+
+```bash
+python3 -m src.run_dockerized \
+    -i <path/to/validation/data> \
+    -o <desired/output/folder/path> \
+    --model_path unet \
+    -npp 3 \
+    -npe 3
+```
+
+Note that you can specify a different model path, choosing between `unet` and `resunet`. This is because I trained two architecture. However, I could only submit using the more simple one (Plain UNet). However, I provide both here for transparency. Also, specify the number of preprocessing and segmentation export processes using the `-npp` and `-npe` flags. Run ```python3 -m src.run_dockerized -h``` to see more flags.
+
 
 ## References
 **Automated brain extraction of multi-sequence MRI using artificial neural
