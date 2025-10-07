@@ -215,11 +215,4 @@ def export_prediction_from_logits(
         segmentation_final = ret
         del ret
 
-    hipp_seg = segmentation_final.copy()
-    hipp_seg[hipp_seg > 2] = 0
-    rw.write_seg(hipp_seg, outfile + '_hipp' + file_ending, properties)
-    del hipp_seg
-
-    baga_seg = segmentation_final.copy()
-    baga_seg[baga_seg < 5] = 0
-    rw.write_seg(baga_seg, outfile + '_baga' + file_ending, properties)
+    rw.write_seg(segmentation_final, outfile + file_ending, properties)
